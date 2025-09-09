@@ -1,0 +1,22 @@
+{
+  "preceding_negations": [
+    "no",
+    "not",
+    "without",
+    "denies",
+    "absent",
+    "negative for",
+    "ruled out",
+    "no evidence of",
+    "no sign of",
+    "no history of"
+  ],
+  "following_negations": [
+    "absent",
+    "not present",
+    "not detected",
+    "not found",
+    "ruled out",
+    "negative"
+  ]
+}
