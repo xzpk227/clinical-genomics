@@ -1,0 +1,148 @@
+[
+  {
+    "note": "Patient has seizures.",
+    "expected_mentions": [
+      {"text": "seizures", "hpo_id": "HP:0001250", "negated": false}
+    ]
+  },
+  {
+    "note": "The child presents with hypotonia.",
+    "expected_mentions": [
+      {"text": "hypotonia", "hpo_id": "HP:0001290", "negated": false}
+    ]
+  },
+  {
+    "note": "No hearing loss was detected.",
+    "expected_mentions": [
+      {"text": "hearing loss", "hpo_id": "HP:0000365", "negated": true}
+    ]
+  },
+  {
+    "note": "Patient denies hearing loss.",
+    "expected_mentions": [
+      {"text": "hearing loss", "hpo_id": "HP:0000365", "negated": true}
+    ]
+  },
+  {
+    "note": "Global developmental delay was noted on assessment.",
+    "expected_mentions": [
+      {"text": "global developmental delay", "hpo_id": "HP:0001263", "negated": false}
+    ]
+  },
+  {
+    "note": "The patient has both seizures and hypotonia.",
+    "expected_mentions": [
+      {"text": "seizures", "hpo_id": "HP:0001250", "negated": false},
+      {"text": "hypotonia", "hpo_id": "HP:0001290", "negated": false}
+    ]
+  },
+  {
+    "note": "No seizures were observed during the monitoring period.",
+    "expected_mentions": [
+      {"text": "seizures", "hpo_id": "HP:0001250", "negated": true}
+    ]
+  },
+  {
+    "note": "The infant was found to have microcephaly.",
+    "expected_mentions": [
+      {"text": "microcephaly", "hpo_id": "HP:0000252", "negated": false}
+    ]
+  },
+  {
+    "note": "Without ataxia or tremor.",
+    "expected_mentions": [
+      {"text": "ataxia", "hpo_id": "HP:0001251", "negated": true},
+      {"text": "tremor", "hpo_id": "HP:0001337", "negated": true}
+    ]
+  },
+  {
+    "note": "Examination revealed spasticity in the lower limbs.",
+    "expected_mentions": [
+      {"text": "spasticity", "hpo_id": "HP:0001257", "negated": false}
+    ]
+  },
+  {
+    "note": "The patient has intellectual disability.",
+    "expected_mentions": [
+      {"text": "intellectual disability", "hpo_id": "HP:0001249", "negated": false}
+    ]
+  },
+  {
+    "note": "No evidence of intellectual disability.",
+    "expected_mentions": [
+      {"text": "intellectual disability", "hpo_id": "HP:0001249", "negated": true}
+    ]
+  },
+  {
+    "note": "Delayed speech and language development was observed.",
+    "expected_mentions": [
+      {"text": "delayed speech", "hpo_id": "HP:0000750", "negated": false}
+    ]
+  },
+  {
+    "note": "The child has episodes of shaking consistent with epileptic seizures.",
+    "expected_mentions": [
+      {"text": "epileptic seizures", "hpo_id": "HP:0001250", "negated": false}
+    ]
+  },
+  {
+    "note": "Absent knee reflexes were noted bilaterally.",
+    "expected_mentions": [
+      {"text": "absent knee reflexes", "hpo_id": "HP:0001315", "negated": false}
+    ]
+  },
+  {
+    "note": "The patient has no dysmorphic features.",
+    "expected_mentions": [
+      {"text": "dysmorphic features", "hpo_id": "HP:0001畸形", "negated": true}
+    ]
+  },
+  {
+    "note": "Findings include scoliosis and joint hypermobility.",
+    "expected_mentions": [
+      {"text": "scoliosis", "hpo_id": "HP:0002650", "negated": false},
+      {"text": "joint hypermobility", "hpo_id": "HP:0001382", "negated": false}
+    ]
+  },
+  {
+    "note": "The patient denies any visual impairment.",
+    "expected_mentions": [
+      {"text": "visual impairment", "hpo_id": "HP:0000505", "negated": true}
+    ]
+  },
+  {
+    "note": "Autism spectrum disorder was diagnosed at age 3.",
+    "expected_mentions": [
+      {"text": "autism spectrum disorder", "hpo_id": "HP:0000729", "negated": false}
+    ]
+  },
+  {
+    "note": "No abnormal findings were identified on neurological examination.",
+    "expected_mentions": []
+  },
+  {
+    "note": "The child has feeding difficulties and failure to thrive.",
+    "expected_mentions": [
+      {"text": "feeding difficulties", "hpo_id": "HP:0011968", "negated": false},
+      {"text": "failure to thrive", "hpo_id": "HP:0001508", "negated": false}
+    ]
+  },
+  {
+    "note": "Muscle weakness was present in all four limbs.",
+    "expected_mentions": [
+      {"text": "muscle weakness", "hpo_id": "HP:0001324", "negated": false}
+    ]
+  },
+  {
+    "note": "The patient has short stature.",
+    "expected_mentions": [
+      {"text": "short stature", "hpo_id": "HP:0004322", "negated": false}
+    ]
+  },
+  {
+    "note": "Absent speech was noted; the child has never spoken.",
+    "expected_mentions": [
+      {"text": "absent speech", "hpo_id": "HP:0001344", "negated": false}
+    ]
+  }
+]

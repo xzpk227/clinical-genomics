@@ -1,0 +1,21 @@
+Patient is a 14-year-old male with a known diagnosis of Duchenne muscular dystrophy, presenting for annual review.
+
+Musculoskeletal:
+- Progressive muscle weakness affecting proximal limb muscles. The patient is now wheelchair-dependent.
+- Scoliosis identified on spinal radiograph; Cobb angle measured at 28 degrees.
+- Joint contractures present at the ankles and hips bilaterally.
+- Muscle atrophy is prominent in the lower extremities.
+
+Respiratory:
+- Forced vital capacity has declined to 52% of predicted. Nocturnal hypoventilation is suspected.
+- No respiratory failure at rest.
+
+Cardiac:
+- Dilated cardiomyopathy confirmed on echocardiogram. Ejection fraction 42%.
+- No arrhythmia detected on 24-hour Holter monitoring.
+
+Neurological:
+- Intellectual disability is not present; cognitive function is within normal limits.
+- No seizures reported.
+
+Plan: Referral to respiratory medicine for consideration of non-invasive ventilation. Cardiology follow-up in 3 months. Physiotherapy to address joint contractures and scoliosis management.

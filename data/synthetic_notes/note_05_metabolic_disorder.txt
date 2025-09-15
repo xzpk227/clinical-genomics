@@ -1,0 +1,20 @@
+Patient is a 6-month-old female referred for evaluation following an abnormal newborn screen result suggestive of a fatty acid oxidation disorder.
+
+Presenting concerns: The infant has had two episodes of hypoglycemia requiring hospital admission. Parents report poor feeding and lethargy during intercurrent illnesses.
+
+Physical examination:
+- Hepatomegaly: liver palpable 3 cm below the right costal margin.
+- Hypotonia: reduced muscle tone noted on examination.
+- No dysmorphic features identified.
+- No seizures observed during examination.
+
+Laboratory findings:
+- Elevated acylcarnitine profile consistent with medium-chain acyl-CoA dehydrogenase (MCAD) deficiency.
+- Liver transaminases mildly elevated.
+- Plasma amino acids within normal limits.
+
+Developmental: Age-appropriate development at this time. No global developmental delay identified.
+
+Impression: Findings are consistent with MCAD deficiency. The hypotonia and hepatomegaly are likely secondary to the metabolic disorder. Genetic confirmation via ACADM gene sequencing is pending.
+
+Plan: Dietary management with avoidance of prolonged fasting. Emergency protocol provided to family. Metabolic dietitian referral placed.

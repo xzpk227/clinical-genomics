@@ -1,0 +1,18 @@
+Patient is a 2-year-old male referred by his pediatrician for evaluation of multiple congenital anomalies and developmental concerns.
+
+Physical examination:
+- Microcephaly: head circumference at the 2nd percentile for age and sex.
+- Short stature: height at the 3rd percentile.
+- Dysmorphic features including widely spaced eyes, low-set ears, and a broad nasal bridge.
+- Clinodactyly of the fifth fingers bilaterally.
+
+Neurological:
+- Hypotonia present; the child has poor head control.
+- Global developmental delay: not yet sitting independently at 24 months.
+- Absent speech; no words produced to date.
+
+Cardiac: A ventricular septal defect was identified on echocardiogram.
+
+Gastrointestinal: Feeding difficulties requiring nasogastric tube supplementation in the neonatal period; now tolerating oral feeds with thickened liquids.
+
+Impression: The constellation of microcephaly, short stature, dysmorphic features, hypotonia, global developmental delay, and absent speech is suggestive of a chromosomal or single-gene disorder. Chromosomal microarray and exome sequencing are recommended.
