@@ -1,0 +1,9 @@
+{
+  "extraction_precision": 0.92,
+  "extraction_recall": 0.8519,
+  "extraction_f1": 0.8846,
+  "top1_accuracy": 0.913,
+  "top3_accuracy": 1.0,
+  "negation_fp_rate": 0.0,
+  "total_cases": 24
+}
