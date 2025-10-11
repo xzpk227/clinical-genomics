@@ -1,64 +1,130 @@
-# Clinical Phenotype Extraction and HPO Mapping Pipeline
+# Clinical NLP & Oncology Adverse Event Prediction Pipeline
 
-A production-quality NLP pipeline that accepts free-text clinical notes and returns structured [Human Phenotype Ontology (HPO)](https://hpo.jax.org/) term mappings. Built as a portfolio project demonstrating clinical NLP, biomedical ontology mapping, embedding-based retrieval, FastAPI deployment, and responsible AI practices.
+A clinical NLP and machine learning pipeline that converts free-text clinical notes and structured EHR data into actionable oncology decision-support outputs. Built as a portfolio project demonstrating clinical NLP, biomedical ontology mapping, embedding-based retrieval, adverse event risk prediction, and responsible AI practices.
 
 > **This system is decision-support tooling only. It does not diagnose patients and must always be used under clinician supervision.**
+
+---
+
+## Overview
+
+The pipeline has two integrated components:
+
+| Component | Description |
+|-----------|-------------|
+| **HPO Extraction Pipeline** | Converts free-text clinical notes into structured [Human Phenotype Ontology (HPO)](https://hpo.jax.org/) term mappings using spaCy, negspaCy/NegEx, BioLORD-2023 embeddings, and FAISS semantic search |
+| **Oncology Adverse Event Module** | Extracts oncology symptoms and CTCAE-graded adverse events from clinical notes; predicts adverse event risk from structured EHR features using a calibrated XGBoost + Logistic Regression ensemble |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     FastAPI Service                          │
-│   POST /extract-phenotypes        GET /health               │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Pipeline Orchestrator                       │
-│                                                             │
-│  clinical_note                                              │
-│      │                                                      │
-│      ▼                                                      │
-│  [Extractor]          spaCy PhraseMatcher over HPO terms    │
-│      │                                                      │
-│      ▼                                                      │
-│  [Negation Handler]   negspaCy NegEx algorithm              │
-│      │                                                      │
-│      ▼                                                      │
-│  [Mapper]             BioLORD-2023 + FAISS IndexFlatIP      │
-│      │                                                      │
-│      ▼  (optional)                                          │
-│  [LLM Summary]        Local medical LLM (feature-flagged)   │
-└─────────────────────────────────────────────────────────────┘
-                       │
-          ┌────────────┴────────────┐
-          │       Data Layer        │
-          │  hpo_database.json      │
-          │  hpo_index.faiss        │
-          │  hpo_id_map.json        │
-          └─────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                          FastAPI Service                              │
+│                                                                      │
+│  POST /extract-phenotypes          HPO term extraction               │
+│  POST /extract-clinical-concepts   Oncology symptom extraction       │
+│  POST /predict-adverse-event-risk  AE risk prediction                │
+│  POST /summarize-risk              LLM-generated risk summary        │
+│  GET  /health                                                        │
+└────────────────────────┬─────────────────────────────────────────────┘
+                         │
+           ┌─────────────┴─────────────┐
+           │                           │
+           ▼                           ▼
+┌──────────────────────┐   ┌──────────────────────────────┐
+│   HPO Pipeline        │   │   Oncology Pipeline           │
+│                      │   │                              │
+│  [Extractor]         │   │  [OncologyExtractor]         │
+│  spaCy PhraseMatcher │   │  16-category vocabulary      │
+│                      │   │  CTCAE grade inference       │
+│  [Negation Handler]  │   │                              │
+│  negspaCy NegEx      │   │  [NegationHandler]           │
+│                      │   │  negspaCy NegEx              │
+│  [Mapper]            │   │                              │
+│  BioLORD-2023        │   │  [AdverseEventModel]         │
+│  FAISS IndexFlatIP   │   │  XGBoost + LR ensemble       │
+│                      │   │  Calibrated probabilities    │
+│  [LLM Summary]       │   │                              │
+│  (feature-flagged)   │   │  [LLM Risk Summary]          │
+└──────────────────────┘   │  (feature-flagged)           │
+                           └──────────────────────────────┘
 ```
 
-### Components
+### HPO Pipeline Components
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Extractor** | spaCy `PhraseMatcher` | Detects HPO term mentions in clinical notes via case-insensitive rule-based matching |
-| **Negation Handler** | negspaCy (NegEx) | Identifies negated mentions (e.g., "no seizures") using a configurable cue list |
-| **Mapper** | BioLORD-2023 + FAISS | Encodes mentions into biomedical vector space and retrieves top-k HPO candidates by cosine similarity |
-| **LLM Summary** | Local medical LLM (optional) | Generates plain-language summaries from structured HPO results (feature-flagged) |
-| **API** | FastAPI + Pydantic v2 | Validates inputs, orchestrates the pipeline, returns structured JSON responses |
+| **Extractor** | spaCy `PhraseMatcher` | Detects HPO term mentions via case-insensitive rule-based matching |
+| **Negation Handler** | negspaCy (NegEx) | Identifies negated mentions using a configurable cue list |
+| **Mapper** | BioLORD-2023 + FAISS | Encodes mentions into biomedical vector space; retrieves top-k HPO candidates by cosine similarity |
+| **LLM Summary** | Local medical LLM (optional) | Generates plain-language summaries from structured HPO results |
+
+### Oncology Module Components
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **OncologyExtractor** | spaCy `PhraseMatcher` | Detects 18 oncology symptom categories with CTCAE grade inference (grades 1–4) |
+| **AdverseEventModel** | XGBoost + Logistic Regression | Predicts adverse event probability from EHR features + NLP-derived symptom flags |
+| **Feature Engineering** | scikit-learn `ColumnTransformer` | Combines lab values, ECOG score, staging, cycle number, and NLP binary flags |
 
 ---
 
-## Setup and Build
+## Oncology Adverse Event Model
+
+### Feature Groups
+
+| Group | Features |
+|-------|---------|
+| **Demographic** | age, sex |
+| **Clinical** | ECOG score, cancer stage (I–IV), treatment cycle number |
+| **Laboratory** | WBC, ANC, hemoglobin, platelets, creatinine, ALT, bilirubin |
+| **Symptom scores** | fatigue, nausea, pain, dyspnea (0–10 scale) |
+| **NLP flags** | has_fatigue, has_nausea, has_fever, has_neuropathy, has_dyspnea, has_pain, has_bleeding, has_infection, has_thrombosis, has_pneumonitis, has_colitis, has_hepatotoxicity, has_mucositis, has_neutropenia, has_anemia, has_thrombocytopenia, symptom_count |
+
+### Model Architecture
+
+- **Baseline**: Logistic Regression with L2 regularization, Platt-scaled calibration
+- **Primary**: XGBoost gradient boosted trees, isotonic calibration
+- **Ensemble**: Soft-vote average of LR and XGBoost probabilities
+- **Evaluation**: AUROC, AUPRC (primary for class imbalance), Brier score, subgroup AUROC by age group / sex / cancer type, 5-fold stratified CV
+
+### Oncology Symptom Categories
+
+The extractor covers 18 CTCAE-relevant categories:
+
+`fatigue` · `nausea` · `vomiting` · `fever` · `neuropathy` · `dyspnea` · `pain` · `bleeding` · `infection` · `thrombosis` · `pneumonitis` · `colitis` · `hepatotoxicity` · `mucositis` · `alopecia` · `rash` · `neutropenia` · `anemia` · `thrombocytopenia`
+
+---
+
+## Evaluation Results
+
+Evaluated on 24 synthetic clinical notes covering exact label matches, synonym matches, negated phenotypes, multi-phenotype notes, and edge cases.
+
+| Metric | Score |
+|--------|-------|
+| Extraction precision | **0.920** |
+| Extraction recall | **0.852** |
+| Extraction F1 | **0.885** |
+| Top-1 HPO accuracy | **0.913** |
+| Top-3 HPO accuracy | **1.000** |
+| Negation FP rate | **0.000** |
+
+Run the evaluation locally:
+
+```bash
+TOKENIZERS_PARALLELISM=false python scripts/run_evaluation.py
+```
+
+---
+
+## Setup
 
 ### Prerequisites
 
 - Python 3.11+
-- Docker (recommended for running the API)
+- Docker (recommended for the API)
 - HPO source file: download `hp.json` from the [HPO GitHub releases](https://github.com/obophenotype/human-phenotype-ontology/releases)
 
 ### 1. Install dependencies
@@ -68,8 +134,6 @@ pip install -e ".[dev]"
 ```
 
 ### 2. Build the HPO database
-
-Download `hp.json` from the HPO releases page and place it in `data/`:
 
 ```bash
 python -c "
@@ -98,9 +162,7 @@ build_faiss_index(hpo_db, model, 'data/hpo_index.faiss', 'data/hpo_id_map.json')
 docker compose up --build
 ```
 
-The API will be available at `http://localhost:8000`.
-
-### 5. Run locally (without Docker)
+### 5. Run locally
 
 ```bash
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -110,7 +172,7 @@ uvicorn src.api.main:app --host 0.0.0.0 --port 8000
 
 ## Example API Calls
 
-### Extract phenotypes from a clinical note
+### Extract HPO phenotypes
 
 ```bash
 curl -X POST http://localhost:8000/extract-phenotypes \
@@ -121,53 +183,58 @@ curl -X POST http://localhost:8000/extract-phenotypes \
   }'
 ```
 
-**Expected response:**
+### Extract oncology symptoms
 
+```bash
+curl -X POST http://localhost:8000/extract-clinical-concepts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clinical_note": "Patient reports severe fatigue and grade 2 peripheral neuropathy. No nausea."
+  }'
+```
+
+**Response:**
 ```json
 {
-  "hpo_terms": [
-    {
-      "text": "seizures",
-      "hpo_id": "HP:0001250",
-      "hpo_label": "Seizure",
-      "confidence": 0.97,
-      "negated": false,
-      "candidates": [
-        {"hpo_id": "HP:0001250", "hpo_label": "Seizure", "confidence": 0.97},
-        {"hpo_id": "HP:0001251", "hpo_label": "Ataxia", "confidence": 0.61},
-        {"hpo_id": "HP:0002353", "hpo_label": "EEG abnormality", "confidence": 0.58}
-      ]
-    },
-    {
-      "text": "hypotonia",
-      "hpo_id": "HP:0001290",
-      "hpo_label": "Hypotonia",
-      "confidence": 0.99,
-      "negated": false,
-      "candidates": [...]
-    },
-    {
-      "text": "hearing loss",
-      "hpo_id": "HP:0000365",
-      "hpo_label": "Hearing impairment",
-      "confidence": 0.95,
-      "negated": true,
-      "candidates": [...]
-    }
+  "mentions": [
+    {"text": "fatigue", "category": "fatigue", "negated": false, "grade": 3},
+    {"text": "peripheral neuropathy", "category": "neuropathy", "negated": false, "grade": 2},
+    {"text": "nausea", "category": "nausea", "negated": true, "grade": null}
   ],
-  "summary": null,
-  "disclaimer": "This output is for clinical decision support only. It does not constitute a medical diagnosis. Always involve a qualified clinician."
+  "categories_present": ["fatigue", "neuropathy"],
+  "symptom_count": 2,
+  "max_grade": 3
 }
 ```
 
-### Check pipeline health
+### Predict adverse event risk
 
 ```bash
-curl http://localhost:8000/health
+curl -X POST http://localhost:8000/predict-adverse-event-risk \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "P001",
+    "age": 62,
+    "sex": "F",
+    "cancer_type": "breast",
+    "stage": "III",
+    "treatment": "AC-T",
+    "cycle_number": 3,
+    "ecog_score": 1,
+    "wbc": 3.2, "anc": 1.8, "hemoglobin": 10.5,
+    "platelets": 180, "creatinine": 0.9, "alt": 28, "bilirubin": 0.6,
+    "fatigue_score": 6.0, "nausea_score": 3.0, "pain_score": 2.0, "dyspnea_score": 1.0
+  }'
 ```
 
+**Response:**
 ```json
-{"status": "ok"}
+{
+  "patient_id": "P001",
+  "risk_probability": 0.74,
+  "risk_tier": "high",
+  "model_used": "xgboost"
+}
 ```
 
 ### OpenAPI documentation
@@ -178,59 +245,20 @@ Visit `http://localhost:8000/docs` for the interactive Swagger UI.
 
 ## Running Tests
 
-All tests run inside Docker to ensure a consistent, isolated environment:
-
 ```bash
-# Build the image first
-docker build -t clinical-phenotype-pipeline .
-
-# Run unit tests
+# Unit tests
 docker run --rm clinical-phenotype-pipeline pytest tests/unit/ -v
 
-# Run integration tests
+# Integration tests
 docker run --rm clinical-phenotype-pipeline pytest tests/integration/ -v
 
-# Run regression test (requires pre-built data artifacts)
+# Regression tests
 docker run --rm clinical-phenotype-pipeline pytest tests/regression/ -v
 ```
 
 ---
 
-## Evaluation Results
-
-The pipeline is evaluated against a curated test set of 24 synthetic clinical notes covering exact label matches, synonym matches, negated phenotypes, multi-phenotype notes, and edge cases.
-
-| Metric | Description |
-|--------|-------------|
-| `extraction_precision` | Fraction of predicted mentions that match expected mentions |
-| `extraction_recall` | Fraction of expected mentions that were predicted |
-| `extraction_f1` | Harmonic mean of precision and recall |
-| `top1_accuracy` | Fraction of cases where the correct HPO term is the top-1 result |
-| `top3_accuracy` | Fraction of cases where the correct HPO term appears in top-3 |
-| `negation_fp_rate` | Fraction of negated mentions incorrectly returned as non-negated |
-
-Run the evaluation:
-
-```bash
-python -c "
-from src.pipeline import Pipeline, PipelineConfig
-from src.evaluation.evaluator import Evaluator
-
-pipeline = Pipeline(PipelineConfig())
-evaluator = Evaluator()
-result = evaluator.run(pipeline)
-evaluator.save_report(result, 'data/evaluation/report.json')
-print(result)
-"
-```
-
-The regression test enforces a minimum top-1 accuracy of **0.70** (configurable via `REGRESSION_ACCURACY_THRESHOLD` env var).
-
----
-
 ## Configuration
-
-All configuration is managed via `PipelineConfig` and can be overridden with environment variables:
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
@@ -250,32 +278,31 @@ All configuration is managed via `PipelineConfig` and can be overridden with env
 
 ### No Real Patient Data
 
-This system is designed for use with **synthetic or publicly available de-identified clinical text only**. No real patient data should ever be used as input. The pipeline does not store or log clinical note content after the response is returned.
+This system is designed for use with **synthetic or de-identified clinical text only**. No real patient data should be used as input. The pipeline does not store or log clinical note content after the response is returned.
 
 ### Clinician-in-the-Loop Requirement
 
-All outputs from this system must be reviewed by a qualified clinician before any clinical action is taken. The pipeline is a decision-support tool — it surfaces candidate HPO terms for clinician review, not a replacement for clinical judgment.
+All outputs must be reviewed by a qualified clinician before any clinical action is taken. This pipeline surfaces candidate HPO terms and risk scores for clinician review — it is not a replacement for clinical judgment.
 
 ### Confidence Score Interpretation
 
-Confidence scores represent the cosine similarity between the mention embedding and the HPO term embedding, normalized to [0.0, 1.0]:
+Confidence scores represent cosine similarity between mention and HPO term embeddings, normalized to [0.0, 1.0]:
 
 - **≥ 0.90**: High confidence — strong semantic match
 - **0.70–0.89**: Moderate confidence — likely correct, warrants review
-- **< 0.70**: Low confidence — treat with caution; manual verification recommended
-
-Scores below 0.70 should not be used to drive clinical decisions without explicit clinician review.
+- **< 0.70**: Low confidence — manual verification recommended
 
 ### Known Limitations
 
-- **Rule-based extraction**: The extractor only detects spans that exactly match HPO labels or synonyms. Novel phrasings not in the HPO synonym list will be missed.
-- **Embedding model scope**: BioLORD-2023 is trained on biomedical literature; performance may vary on highly colloquial or non-standard clinical language.
-- **Negation scope**: The NegEx algorithm uses a fixed token window. Complex negation patterns (e.g., double negatives, long-range dependencies) may not be detected correctly.
-- **No temporal reasoning**: The pipeline does not distinguish between current, historical, or family history findings.
-- **English only**: The pipeline is designed for English-language clinical notes only.
+- **Rule-based extraction**: Only detects spans matching HPO labels or synonyms exactly. Novel phrasings not in the HPO synonym list will be missed.
+- **Embedding model scope**: BioLORD-2023 is trained on biomedical literature; performance may vary on colloquial clinical language.
+- **Negation scope**: NegEx uses a fixed token window; complex negation patterns may not be detected.
+- **No temporal reasoning**: Does not distinguish current, historical, or family history findings.
+- **Synthetic data only**: The adverse event model and evaluation are trained and tested on synthetic EHR data. Performance on real patient cohorts requires separate validation.
+- **English only**: Designed for English-language clinical notes.
 
 ### Prohibition on Diagnostic Use
 
-**This system must not be used as a diagnostic tool.** It does not provide diagnoses, treatment recommendations, or clinical decisions. Every response includes the following disclaimer:
+**This system must not be used as a diagnostic tool.** Every response includes the disclaimer:
 
 > *"This output is for clinical decision support only. It does not constitute a medical diagnosis. Always involve a qualified clinician."*
